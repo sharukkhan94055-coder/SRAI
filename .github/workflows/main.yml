@@ -1,4 +1,4 @@
-name: Build Android APK (Omega Power Build)
+name: Build Android APK (Omega Power Build - Final)
 
 on:
   push:
@@ -23,20 +23,28 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Set up Android SDK (Captain's Fix)
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: '34'
+          build-tools: '34.0.0'
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
       - name: Captain's Memory Boost + Path Config
         run: |
-          # 🚀 Captain ki advice: Node.js ko 4GB memory di
+          # 🚀 Node.js ko 4GB memory di taaki robot hang na ho
           export NODE_OPTIONS="--max-old-space-size=4096"
           
-          # 📍 Robot ko rasta dikha diya (Path Fix)
+          # 📍 Robot ko rasta dikha diya (Zabardasti)
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME_21_X64\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          
           echo "Memory boosted to 4GB and Path locked! ✅"
+          echo "Android SDK Home: $ANDROID_HOME"
 
-      - name: Create Keys and Manifest (Zero-Input Fix)
+      - name: Create Master Keys and Manifest
         run: |
           # Digital Signature taiyar
           keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
@@ -44,7 +52,7 @@ jobs:
           -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
           
           mkdir -p ./pwa-apk
-          # Package ID mein dot (.) laga diya taaki error na aaye
+          # Manifest creation - Isme dot wala packageId hai (Error se bachne ke liye)
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
@@ -64,12 +72,12 @@ jobs:
           }
           EOF
 
-      - name: Final Build (With Extra Memory)
+      - name: Final Build (Captain's Memory + Mastermind Bypass)
         run: |
           cd ./pwa-apk
-          # Captain ki memory boost yahan bhi chalu rakhenge
+          # Memory boost build ke waqt bhi
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # Robot ke muh mein password thons diya (No questions!)
+          # Robot ko password khila diya
           printf 'password\npassword\n' | bubblewrap build
 
       - name: Upload Finished APK
