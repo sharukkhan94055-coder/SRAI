@@ -29,7 +29,8 @@ jobs:
       - name: Generate Android APK from PWA
         run: |
           mkdir -p ./pwa-apk
-          yes | bubblewrap init --manifest=https://sharukkhan94055-coder.github.io/SR_AI/manifest.json --directory=./pwa-apk
+          # Mastermind Move: Internet link hata kar direct local file path de diya!
+          yes | bubblewrap init --manifest=./manifest.json --directory=./pwa-apk
           cd ./pwa-apk
           yes | bubblewrap build
 
