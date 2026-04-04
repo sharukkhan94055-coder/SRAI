@@ -1,4 +1,4 @@
-name: Build Android APK (Java 21 - Universal Fix)
+name: Build Android APK (Omega Power Build)
 
 on:
   push:
@@ -26,24 +26,28 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Universal Path Radar (Anti-Error Fix)
+      - name: Captain's Memory Boost + Path Config
         run: |
-          # Isse robot khud dhoond lega ki SDK aur Java kahan hain
+          # 🚀 Captain ki advice: Node.js ko 4GB memory di
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          
+          # 📍 Robot ko rasta dikha diya (Path Fix)
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
-          echo "Robot ko sahi rasta dikha diya hai! ✅"
+          echo "{\"jdkPath\":\"$JAVA_HOME_21_X64\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          echo "Memory boosted to 4GB and Path locked! ✅"
 
-      - name: Create Keys and Manifest
+      - name: Create Keys and Manifest (Zero-Input Fix)
         run: |
-          # Keystore generator
+          # Digital Signature taiyar
           keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
           -validity 10000 -alias android -storepass password -keypass password \
           -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
           
           mkdir -p ./pwa-apk
+          # Package ID mein dot (.) laga diya taaki error na aaye
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
-            "packageId": "com.srai.app",
+            "packageId": "com.sr.ai.mastermind",
             "host": "sharukkhan94055-coder.github.io",
             "name": "SR AI Mastermind",
             "launcherName": "SR AI",
@@ -60,10 +64,12 @@ jobs:
           }
           EOF
 
-      - name: Force Build APK (Strict Instructions)
+      - name: Final Build (With Extra Memory)
         run: |
           cd ./pwa-apk
-          # Password thons diya, ab ye nahi rukega!
+          # Captain ki memory boost yahan bhi chalu rakhenge
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          # Robot ke muh mein password thons diya (No questions!)
           printf 'password\npassword\n' | bubblewrap build
 
       - name: Upload Finished APK
