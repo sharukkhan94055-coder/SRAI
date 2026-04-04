@@ -36,21 +36,33 @@ jobs:
         run: |
           # 🚀 Node.js ko 4GB memory di
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # 📍 Robot ko rasta dikha diya
+          # 📍 Persist environment variables for all steps
+          echo "NODE_OPTIONS=--max-old-space-size=4096" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          # Create bubblewrap config
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           echo "Memory boosted and Path locked! ✅"
 
       - name: Create Master Keys and Manifest
         run: |
-          # 1. Digital Signature taiyar (Password: password)
-          keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
-          -validity 10000 -alias android -storepass password -keypass password \
-          -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
-          
+          # Create working directory FIRST
           mkdir -p ./pwa-apk
-          # 2. Manifest with Passwords (Captain's Hidden Trick)
-          cat <<EOF > ./pwa-apk/twa-manifest.json
+          
+          # 1. Digital Signature taiyar (Password: password)
+          # -noprompt flag is CRITICAL to prevent interactive prompts
+          keytool -genkeypair -v -keystore ./pwa-apk/android.keystore \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias android -storepass password -keypass password \
+            -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN' \
+            -noprompt < /dev/null
+          
+          # Verify keystore creation
+          keytool -list -keystore ./pwa-apk/android.keystore \
+            -storepass password -noprompt
+          
+          # 2. Manifest with Passwords (FIX: correct path to keystore)
+          cat <<'EOF' > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
             "host": "sharukkhan94055-coder.github.io",
@@ -62,8 +74,8 @@ jobs:
             "backgroundColor": "#050a18",
             "startUrl": "/SRAI/index.html",
             "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
-            "signingKey": { 
-              "path": "../android.keystore", 
+            "signingKey": {
+              "path": "android.keystore",
               "alias": "android",
               "keyPassword": "password",
               "keystorePassword": "password"
@@ -73,18 +85,66 @@ jobs:
             "fallbackType": "customtabs"
           }
           EOF
+          
+          echo "✅ Manifest created at ./pwa-apk/twa-manifest.json"
+
+      - name: Initialize Bubblewrap Project
+        run: |
+          cd ./pwa-apk
+          
+          # Initialize bubblewrap with non-interactive flags
+          # --skipSigning=false ensures signing happens with keystore credentials
+          bubblewrap init \
+            --manifest twa-manifest.json \
+            --force \
+            --skipSigning=false \
+            < /dev/null 2>&1 | tee init.log
+          
+          if [ $? -ne 0 ]; then
+            echo "⚠️ Init warnings (may be normal), continuing..."
+            cat init.log
+          fi
 
       - name: Final Build (Captain's Force Mode)
         run: |
           cd ./pwa-apk
-          # Memory boost build ke waqt bhi
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # Captain's Trick: --force se koi sawal nahi pucha jayega
-          # --skipSigning isliye taaki keystore par na atke
-          bubblewrap build --skipSigning --force
+          
+          # Build with proper flags
+          # Removed --skipSigning so APK is properly signed with keystore
+          bubblewrap build \
+            --manifest twa-manifest.json \
+            --force \
+            < /dev/null 2>&1 | tee build.log
+          
+          BUILD_RESULT=$?
+          cat build.log
+          
+          if [ $BUILD_RESULT -ne 0 ]; then
+            echo "❌ Build failed with exit code $BUILD_RESULT"
+            exit $BUILD_RESULT
+          fi
+          
+          echo "✅ Build completed successfully"
+
+      - name: Verify and List APKs
+        run: |
+          cd ./pwa-apk
+          
+          echo "📦 Searching for APK files..."
+          if find . -name "*.apk" -type f; then
+            echo "✅ APK(s) found"
+            ls -lah *.apk 2>/dev/null || ls -lah **/*.apk 2>/dev/null
+          else
+            echo "❌ No APK files found after build"
+            echo "Listing all files in pwa-apk directory:"
+            find . -type f | head -20
+            exit 1
+          fi
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
           name: SR-AI-Mastermind-APK
           path: ./pwa-apk/*.apk
+          if-no-files-found: error
