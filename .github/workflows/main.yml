@@ -1,4 +1,4 @@
-name: Build SR Comedy Gang APK (The Final Victory)
+name: Build SR Comedy Gang APK (Zero Prompt Edition)
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
 
-      - name: Create Keystore & Manifest (100% Pass ✅)
+      - name: Create Keystore & Manifest
         run: |
           mkdir -p ./pwa-apk
           
@@ -68,19 +68,18 @@ jobs:
           }
           EOF
 
-      - name: Scaffold Android Project (The Missing Link Fix)
+      - name: Scaffold Android Project
         run: |
           cd ./pwa-apk
-          # 'y' bolkar robot ko Android files banane ki permission di
           yes "y" | bubblewrap update
 
-      - name: Final Build APK (Action Mode)
+      - name: Final Build APK (Zero Prompt Mode)
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd ./pwa-apk
-          # Yahan seedha build hoga
-          bubblewrap build
+          # Ye command robot ka muh band kar degi, koi password nahi mangega!
+          bubblewrap build --skipSigning
 
       - name: Upload Final APK
         uses: actions/upload-artifact@v4
