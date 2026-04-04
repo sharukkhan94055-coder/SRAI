@@ -1,4 +1,4 @@
-name: Build SR Comedy Gang APK (Java 21 Power Edition)
+name: Build SR Comedy Gang APK (The Final Victory)
 
 on:
   push:
@@ -12,21 +12,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up High-Power Engine (Java 21)
+      - name: Set up Java 17 (Stable Android Engine)
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Node.js (Version 21)
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '21'
+          node-version: '20'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Bubblewrap (Latest Real Version)
+      - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
       - name: Lock Robot Configuration
@@ -34,18 +34,16 @@ jobs:
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
 
-      - name: Create Keystore & Manifest
+      - name: Create Keystore & Manifest (100% Pass ✅)
         run: |
           mkdir -p ./pwa-apk
           
-          # No-prompt Keystore Generation (Super Fast)
           keytool -genkeypair -v -keystore ./pwa-apk/android.keystore \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -alias android -storepass password -keypass password \
             -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN' \
             -noprompt
           
-          # 100% Secure Manifest
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
@@ -70,13 +68,19 @@ jobs:
           }
           EOF
 
-      - name: Final Build APK (The 1-Minute Magic)
+      - name: Scaffold Android Project (The Missing Link Fix)
+        run: |
+          cd ./pwa-apk
+          # 'y' bolkar robot ko Android files banane ki permission di
+          yes "y" | bubblewrap update
+
+      - name: Final Build APK (Action Mode)
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd ./pwa-apk
-          # The Ultimate Terminator Command: Koi sawal nahi, seedha build!
-          yes "n" | bubblewrap build --force --skipSigning
+          # Yahan seedha build hoga
+          bubblewrap build
 
       - name: Upload Final APK
         uses: actions/upload-artifact@v4
