@@ -1,75 +1,52 @@
-name: Build Android APK (Full Automatic Bypass)
+name: Build Android APK (Java 21 Power Build)
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Smart Engine (Java 17)
+      - name: Set up Latest Stable Engine (Java 21)
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install Bubblewrap
-        run: npm install --global @bubblewrap/cli
+        run: npm install -g @bubblewrap/cli
 
-      - name: Give Map to Robot (Bypass All Questions)
+      - name: Automatic Path Config (Robot Logic)
         run: |
-          # Isse robot ko rasta mil jayega aur wo sawal nahi puchega
+          # Isse robot ko rasta dhoondhne ki mehnat nahi karni padegi
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"${JAVA_HOME}\",\"androidSdkPath\":\"${ANDROID_SDK_ROOT}\"}" > ~/.bubblewrap/config.json
 
-      - name: Create Keys and Manifest
+      - name: Generate Master Key (Keystore)
         run: |
-          # Key generator
-          keytool -genkey -v -keystore ./android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=SR, OU=Comedy, O=Gang, L=Basti, S=UP, C=IN"
-          
-          mkdir -p ./pwa-apk
-          cat <<EOF > ./pwa-apk/twa-manifest.json
-          {
-            "packageId": "com.srai.app",
-            "host": "sharukkhan94055-coder.github.io",
-            "name": "SR AI Mastermind",
-            "launcherName": "SR AI",
-            "display": "standalone",
-            "themeColor": "#00d4ff",
-            "navigationColor": "#050a18",
-            "backgroundColor": "#050a18",
-            "enableNotifications": false,
-            "startUrl": "/SRAI/index.html",
-            "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
-            "maskableIconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
-            "splashScreenFadeOutDuration": 300,
-            "signingKey": {
-              "path": "../android.keystore",
-              "alias": "android"
-            },
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1,
-            "generatorApp": "bubblewrap-cli",
-            "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json",
-            "fallbackType": "customtabs",
-            "isHarman": false
-          }
-          EOF
+          keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
+          -validity 10000 -alias android -storepass password -keypass password \
+          -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
 
-      - name: Force Build (No Questions)
+      - name: Force Build (Java 21 Mode)
         run: |
+          mkdir -p ./pwa-apk
+          # Manifest files setup bina internet ke
+          echo '{"packageId": "com.sr.ai.mastermind", "host": "sharukkhan94055-coder.github.io", "name": "SR AI Mastermind", "launcherName": "SR AI", "display": "standalone", "themeColor": "#00d4ff", "navigationColor": "#050a18", "backgroundColor": "#050a18", "startUrl": "/SRAI/index.html", "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png", "signingKey": {"path": "../android.keystore", "alias": "android"}, "generatorApp": "bubblewrap-cli", "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json", "fallbackType": "customtabs"}' > ./pwa-apk/twa-manifest.json
+          
           cd ./pwa-apk
-          # Robot ko password khila diya, ab ye nahi rukega
+          # Robot ke muh mein password thons diya
           printf 'password\npassword\n' | bubblewrap build
 
       - name: Upload Finished APK
