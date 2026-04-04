@@ -1,4 +1,4 @@
-name: Build Android APK (SR-AI Force Build)
+name: Build Android APK (Java 21 - Fixed SDK Path)
 
 on:
   push:
@@ -26,21 +26,20 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Bypass Questions (Create Manual Config)
+      - name: Hard-Fix SDK Path (Robot Blindfold)
         run: |
-          # Robot ko rasta dikha diya taaki wo sawal na puche
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"${JAVA_HOME}\",\"androidSdkPath\":\"${ANDROID_SDK_ROOT}\"}" > ~/.bubblewrap/config.json
-          
-          # Digital Signature (Keystore) banana
+          # Yahan hai asli jadoo - GitHub ka sahi SDK path
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
+
+      - name: Create Keys and Manifest
+        run: |
+          # Keystore generator
           keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
           -validity 10000 -alias android -storepass password -keypass password \
           -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
-
-      - name: Inject App Details (Manifest Fix)
-        run: |
+          
           mkdir -p ./pwa-apk
-          # Saare 1/5, 2/5 wale sawalon ke jawab yahan hain!
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
@@ -51,28 +50,19 @@ jobs:
             "themeColor": "#00d4ff",
             "navigationColor": "#050a18",
             "backgroundColor": "#050a18",
-            "enableNotifications": false,
             "startUrl": "/SRAI/index.html",
             "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
-            "maskableIconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
-            "splashScreenFadeOutDuration": 300,
-            "signingKey": {
-              "path": "../android.keystore",
-              "alias": "android"
-            },
-            "appVersionName": "1.0.0",
-            "appVersionCode": 1,
+            "signingKey": { "path": "../android.keystore", "alias": "android" },
             "generatorApp": "bubblewrap-cli",
             "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json",
-            "fallbackType": "customtabs",
-            "isHarman": false
+            "fallbackType": "customtabs"
           }
           EOF
 
-      - name: Final Build (No Questions Asked)
+      - name: Force Build (No Questions Allowed)
         run: |
           cd ./pwa-apk
-          # Robot ke muh mein password thons diya, ab ye nahi rukega!
+          # Robot ke muh mein password thons diya taaki wo sawal na puche
           printf 'password\npassword\n' | bubblewrap build
 
       - name: Upload Finished APK
