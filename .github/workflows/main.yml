@@ -1,4 +1,4 @@
-name: Build Android APK (Java 21 - Fixed SDK Path)
+name: Build Android APK (Java 21 - Universal Fix)
 
 on:
   push:
@@ -12,13 +12,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Latest Engine (Java 21)
+      - name: Set up High-Power Engine (Java 21)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -26,11 +26,12 @@ jobs:
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Hard-Fix SDK Path (Robot Blindfold)
+      - name: Universal Path Radar (Anti-Error Fix)
         run: |
+          # Isse robot khud dhoond lega ki SDK aur Java kahan hain
           mkdir -p ~/.bubblewrap
-          # Yahan hai asli jadoo - GitHub ka sahi SDK path
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"/usr/local/lib/android/sdk\"}" > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          echo "Robot ko sahi rasta dikha diya hai! ✅"
 
       - name: Create Keys and Manifest
         run: |
@@ -42,7 +43,7 @@ jobs:
           mkdir -p ./pwa-apk
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
-            "packageId": "com.sr.ai.mastermind",
+            "packageId": "com.srai.app",
             "host": "sharukkhan94055-coder.github.io",
             "name": "SR AI Mastermind",
             "launcherName": "SR AI",
@@ -59,10 +60,10 @@ jobs:
           }
           EOF
 
-      - name: Force Build (No Questions Allowed)
+      - name: Force Build APK (Strict Instructions)
         run: |
           cd ./pwa-apk
-          # Robot ke muh mein password thons diya taaki wo sawal na puche
+          # Password thons diya, ab ye nahi rukega!
           printf 'password\npassword\n' | bubblewrap build
 
       - name: Upload Finished APK
