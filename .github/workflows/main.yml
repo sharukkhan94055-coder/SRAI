@@ -39,33 +39,26 @@ jobs:
         with:
           node-version: '20'
 
-      # Step 5: Create .bubblewrap directory and config
+      # Step 5: Create .bubblewrap directory
       - name: Create Bubblewrap Config Directory
         run: |
           mkdir -p ~/.bubblewrap
           mkdir -p pwa-apk
 
-      # Step 6: Set environment variables for memory and SDK paths
-      - name: Set Environment Variables
+      # Step 6: Capture ANDROID_HOME and verify SDK
+      - name: Verify Android SDK and Capture Path
         run: |
-          echo "NODE_OPTIONS=--max-old-space-size=4096" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=/opt/android/sdk" >> $GITHUB_ENV
-          echo "ANDROID_HOME=/opt/android/sdk" >> $GITHUB_ENV
-          echo "PATH=/opt/android/sdk/cmdline-tools/latest/bin:$PATH" >> $GITHUB_ENV
+          echo "ANDROID_HOME from environment: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT from environment: $ANDROID_SDK_ROOT"
+          ls -la $ANDROID_HOME || echo "ANDROID_HOME path not found"
+          ls -la $ANDROID_SDK_ROOT || echo "ANDROID_SDK_ROOT path not found"
 
-      # Step 7: Verify Android SDK installation
-      - name: Verify Android SDK
-        run: |
-          ls -la /opt/android/sdk/
-          echo "SDK Root: $ANDROID_SDK_ROOT"
-          echo "SDK Home: $ANDROID_HOME"
-
-      # Step 8: Create Bubblewrap global config with correct SDK path
+      # Step 7: Create Bubblewrap global config with dynamic SDK path
       - name: Configure Bubblewrap Global Config
         run: |
-          cat > ~/.bubblewrap/config.json << 'BUBBLEWRAP_CONFIG'
+          cat > ~/.bubblewrap/config.json << BUBBLEWRAP_CONFIG
           {
-            "androidSdk": "/opt/android/sdk",
+            "androidSdk": "$ANDROID_HOME",
             "jdkPath": null,
             "androidStudioPath": null,
             "targetSdkVersion": 34,
@@ -75,7 +68,7 @@ jobs:
           BUBBLEWRAP_CONFIG
           cat ~/.bubblewrap/config.json
 
-      # Step 9: Generate keystore for signing (High-level security with fallback)
+      # Step 8: Generate keystore for signing (High-level security with fallback)
       - name: Generate Keystore
         run: |
           KEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}"
@@ -91,7 +84,7 @@ jobs:
             -noprompt
           ls -lh ~/.bubblewrap/app.keystore
 
-      # Step 10: Create dynamic TWA manifest in pwa-apk folder
+      # Step 9: Create dynamic TWA manifest in pwa-apk folder
       - name: Generate TWA Manifest
         run: |
           cat > pwa-apk/twa-manifest.json << 'MANIFEST_EOF'
@@ -132,39 +125,38 @@ jobs:
           MANIFEST_EOF
           cat pwa-apk/twa-manifest.json
 
-      # Step 11: Install Bubblewrap CLI globally
+      # Step 10: Install Bubblewrap CLI globally
       - name: Install Bubblewrap CLI
         run: |
           npm install -g @bubblewrap/cli@1.62.1
           bubblewrap --version
           which bubblewrap
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
-      # Step 12: Initialize Bubblewrap project (Fix: Interactive prompts with yes "n" |)
+      # Step 11: Initialize Bubblewrap project (Fix: Interactive prompts with yes "n" |)
       - name: Initialize Bubblewrap Project (Non-Interactive)
         run: |
           cd pwa-apk
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          export ANDROID_SDK_ROOT="/opt/android/sdk"
-          export ANDROID_HOME="/opt/android/sdk"
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          echo "Using ANDROID_HOME: $ANDROID_HOME"
           # Bypass ALL interactive prompts by piping 'n' for all questions
           yes n | timeout 120 bubblewrap init --manifest twa-manifest.json || true
           ls -la
           echo "Bubblewrap project initialized (or re-initialized)"
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
-          ANDROID_SDK_ROOT: "/opt/android/sdk"
-          ANDROID_HOME: "/opt/android/sdk"
 
-      # Step 13: Configure Bubblewrap project with keystore details
+      # Step 12: Configure Bubblewrap project with keystore details
       - name: Update Bubblewrap Project Config
         run: |
           cd pwa-apk
           KEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}"
           
-          # Create .bubblewrap/config.json with keystore settings
+          # Create .bubblewrap/config.json with keystore settings and dynamic SDK path
           cat > .bubblewrap/config.json << CONFIG_EOF
           {
-            "androidSdk": "/opt/android/sdk",
+            "androidSdk": "$ANDROID_HOME",
             "keystorePath": "$HOME/.bubblewrap/app.keystore",
             "keystoreAlias": "app-key",
             "keystorePassword": "$KEYSTORE_PASSWORD",
@@ -176,8 +168,10 @@ jobs:
           }
           CONFIG_EOF
           cat .bubblewrap/config.json
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
-      # Step 14: Remove checksum file to skip validation prompts
+      # Step 13: Remove checksum file to skip validation prompts
       - name: Remove Checksum File (Skip Update Prompts)
         run: |
           cd pwa-apk
@@ -186,16 +180,15 @@ jobs:
             echo "Removed checksum.txt to avoid update prompts"
           fi
 
-      # Step 15: Build APK with maximum non-interactive settings (Fix: Exit code 130, Memory, Interactive prompts)
+      # Step 14: Build APK with maximum non-interactive settings (Fix: Exit code 130, Memory, Interactive prompts)
       - name: Build Android APK (Non-Interactive)
         run: |
           cd pwa-apk
-          export NODE_OPTIONS="--max-old-space-size=4096"
-          export ANDROID_SDK_ROOT="/opt/android/sdk"
-          export ANDROID_HOME="/opt/android/sdk"
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           KEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}"
           
           echo "Starting APK build..."
+          echo "ANDROID_HOME: $ANDROID_HOME"
           # Use 'yes' to automatically answer 'n' to all interactive prompts
           # --force flag forces build without prompts
           yes n | timeout 300 bubblewrap build \
@@ -209,17 +202,15 @@ jobs:
           exit 0
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
-          ANDROID_SDK_ROOT: "/opt/android/sdk"
-          ANDROID_HOME: "/opt/android/sdk"
 
-      # Step 16: Locate APK files
+      # Step 15: Locate APK files
       - name: Find Generated APK
         run: |
           echo "Searching for APK files..."
           find pwa-apk -type f -name "*.apk" -o -name "*.aab" 2>/dev/null || true
           ls -lh pwa-apk/ || true
 
-      # Step 17: Upload APK artifact
+      # Step 16: Upload APK artifact
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -228,7 +219,7 @@ jobs:
           retention-days: 30
         if: always()
 
-      # Step 18: Upload Build Logs
+      # Step 17: Upload Build Logs
       - name: Upload Build Logs
         uses: actions/upload-artifact@v4
         with:
@@ -237,7 +228,7 @@ jobs:
           retention-days: 7
         if: always()
 
-      # Step 19: Build Summary
+      # Step 18: Build Summary
       - name: Build Summary
         run: |
           echo "======================================"
