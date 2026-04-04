@@ -1,4 +1,4 @@
-name: Build Android APK (Final Omega Fix)
+name: Build Android APK (Force Mode Final)
 
 on:
   push:
@@ -36,21 +36,20 @@ jobs:
         run: |
           # 🚀 Node.js ko 4GB memory di
           export NODE_OPTIONS="--max-old-space-size=4096"
-          
           # 📍 Robot ko rasta dikha diya
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
           echo "Memory boosted and Path locked! ✅"
 
-      - name: Create Master Keys and Manifest (The Golden Fix)
+      - name: Create Master Keys and Manifest
         run: |
-          # 1. Digital Signature taiyar
+          # 1. Digital Signature taiyar (Password: password)
           keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
           -validity 10000 -alias android -storepass password -keypass password \
           -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
           
           mkdir -p ./pwa-apk
-          # 2. Manifest with Passwords (Captain's Part 4)
+          # 2. Manifest with Passwords (Captain's Hidden Trick)
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
@@ -75,13 +74,14 @@ jobs:
           }
           EOF
 
-      - name: Final Build (No Questions Allowed)
+      - name: Final Build (Captain's Force Mode)
         run: |
           cd ./pwa-apk
-          # Captain ki memory boost + Non-interactive build
+          # Memory boost build ke waqt bhi
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # Is baar manifest mein passwords hain, toh robot sawal nahi puchega!
-          bubblewrap build --skipSigning
+          # Captain's Trick: --force se koi sawal nahi pucha jayega
+          # --skipSigning isliye taaki keystore par na atke
+          bubblewrap build --skipSigning --force
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
