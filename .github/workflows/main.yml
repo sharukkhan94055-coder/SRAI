@@ -1,4 +1,4 @@
-name: Build SR Comedy Gang APK (The Final Brahmastra)
+name: Build SR Comedy Gang APK (Java 21 Power Edition)
 
 on:
   push:
@@ -12,22 +12,21 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java Engine
+      - name: Set up High-Power Engine (Java 21)
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      - name: Set up Node.js
+      - name: Set up Node.js (Version 21)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '21'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Bubblewrap (Fixed Version)
-        # Yahan Copilot ne nakli version dala tha, maine hata diya. Ab hamesha latest chalega!
+      - name: Install Bubblewrap (Latest Real Version)
         run: npm install -g @bubblewrap/cli
 
       - name: Lock Robot Configuration
@@ -39,7 +38,7 @@ jobs:
         run: |
           mkdir -p ./pwa-apk
           
-          # No-prompt Keystore Generation
+          # No-prompt Keystore Generation (Super Fast)
           keytool -genkeypair -v -keystore ./pwa-apk/android.keystore \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -alias android -storepass password -keypass password \
@@ -73,11 +72,10 @@ jobs:
 
       - name: Final Build APK (The 1-Minute Magic)
         env:
-          # Safe Memory Boost inside the build step only
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd ./pwa-apk
-          # The Ultimate Terminator Command
+          # The Ultimate Terminator Command: Koi sawal nahi, seedha build!
           yes "n" | bubblewrap build --force --skipSigning
 
       - name: Upload Final APK
