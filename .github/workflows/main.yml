@@ -12,10 +12,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up Modern JDK (Java 21 - Smart Engine)
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Node.js
@@ -26,15 +26,15 @@ jobs:
       - name: Install Bubblewrap
         run: npm install --global @bubblewrap/cli
 
-      - name: Generate Android APK from PWA
+      - name: Generate Android APK
         run: |
           mkdir -p ./pwa-apk
-          # Mastermind Move: Internet link hata kar direct local file path de diya!
-          yes | bubblewrap init --manifest=./manifest.json --directory=./pwa-apk
+          # Full URL + Smart Bypass
+          yes | bubblewrap init --manifest=https://sharukkhan94055-coder.github.io/SR_AI/manifest.json --directory=./pwa-apk
           cd ./pwa-apk
           yes | bubblewrap build
 
-      - name: Upload APK as Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SR-AI-Mastermind-APK
