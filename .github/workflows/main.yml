@@ -1,4 +1,4 @@
-name: Build Android APK (Omega Power Build - Final)
+name: Build Android APK (Final Omega Fix)
 
 on:
   push:
@@ -34,25 +34,23 @@ jobs:
 
       - name: Captain's Memory Boost + Path Config
         run: |
-          # 🚀 Node.js ko 4GB memory di taaki robot hang na ho
+          # 🚀 Node.js ko 4GB memory di
           export NODE_OPTIONS="--max-old-space-size=4096"
           
-          # 📍 Robot ko rasta dikha diya (Zabardasti)
+          # 📍 Robot ko rasta dikha diya
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-          
-          echo "Memory boosted to 4GB and Path locked! ✅"
-          echo "Android SDK Home: $ANDROID_HOME"
+          echo "Memory boosted and Path locked! ✅"
 
-      - name: Create Master Keys and Manifest
+      - name: Create Master Keys and Manifest (The Golden Fix)
         run: |
-          # Digital Signature taiyar
+          # 1. Digital Signature taiyar
           keytool -genkeypair -v -keystore android.keystore -keyalg RSA -keysize 2048 \
           -validity 10000 -alias android -storepass password -keypass password \
           -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN'
           
           mkdir -p ./pwa-apk
-          # Manifest creation - Isme dot wala packageId hai (Error se bachne ke liye)
+          # 2. Manifest with Passwords (Captain's Part 4)
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
@@ -65,20 +63,25 @@ jobs:
             "backgroundColor": "#050a18",
             "startUrl": "/SRAI/index.html",
             "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
-            "signingKey": { "path": "../android.keystore", "alias": "android" },
+            "signingKey": { 
+              "path": "../android.keystore", 
+              "alias": "android",
+              "keyPassword": "password",
+              "keystorePassword": "password"
+            },
             "generatorApp": "bubblewrap-cli",
             "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json",
             "fallbackType": "customtabs"
           }
           EOF
 
-      - name: Final Build (Captain's Memory + Mastermind Bypass)
+      - name: Final Build (No Questions Allowed)
         run: |
           cd ./pwa-apk
-          # Memory boost build ke waqt bhi
+          # Captain ki memory boost + Non-interactive build
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # Robot ko password khila diya
-          printf 'password\npassword\n' | bubblewrap build
+          # Is baar manifest mein passwords hain, toh robot sawal nahi puchega!
+          bubblewrap build --skipSigning
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
