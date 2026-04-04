@@ -1,240 +1,87 @@
-name: Build Android APK from PWA
+name: Build SR Comedy Gang APK (The Final Brahmastra)
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
-
     steps:
-      # Step 1: Checkout Repository
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Java (Required for Android Build Tools)
-      - name: Setup Java JDK
+      - name: Set up Java Engine
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
           java-version: '17'
+          distribution: 'temurin'
 
-      # Step 3: Setup Android SDK (Fixes: "The provided androidSdk isn't correct")
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-levels: '34'
-          build-tools-version: '34.0.0'
-          cache: true
-          ndk-version: '26.1.10909125'
-
-      # Step 4: Setup Node.js
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # Step 5: Create .bubblewrap directory
-      - name: Create Bubblewrap Config Directory
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap (Fixed Version)
+        # Yahan Copilot ne nakli version dala tha, maine hata diya. Ab hamesha latest chalega!
+        run: npm install -g @bubblewrap/cli
+
+      - name: Lock Robot Configuration
         run: |
           mkdir -p ~/.bubblewrap
-          mkdir -p pwa-apk
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
 
-      # Step 6: Capture ANDROID_HOME and verify SDK
-      - name: Verify Android SDK and Capture Path
+      - name: Create Keystore & Manifest
         run: |
-          echo "ANDROID_HOME from environment: $ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT from environment: $ANDROID_SDK_ROOT"
-          ls -la $ANDROID_HOME || echo "ANDROID_HOME path not found"
-          ls -la $ANDROID_SDK_ROOT || echo "ANDROID_SDK_ROOT path not found"
-
-      # Step 7: Create Bubblewrap global config with dynamic SDK path
-      - name: Configure Bubblewrap Global Config
-        run: |
-          cat > ~/.bubblewrap/config.json << BUBBLEWRAP_CONFIG
-          {
-            "androidSdk": "$ANDROID_HOME",
-            "jdkPath": null,
-            "androidStudioPath": null,
-            "targetSdkVersion": 34,
-            "keystore": null,
-            "keystoreAlias": null
-          }
-          BUBBLEWRAP_CONFIG
-          cat ~/.bubblewrap/config.json
-
-      # Step 8: Generate keystore for signing (High-level security with fallback)
-      - name: Generate Keystore
-        run: |
-          KEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}"
-          keytool -genkey -v \
-            -keystore ~/.bubblewrap/app.keystore \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -alias app-key \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -keypass "$KEYSTORE_PASSWORD" \
-            -dname "CN=SR AI, O=SR AI, L=India, C=IN" \
+          mkdir -p ./pwa-apk
+          
+          # No-prompt Keystore Generation
+          keytool -genkeypair -v -keystore ./pwa-apk/android.keystore \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias android -storepass password -keypass password \
+            -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN' \
             -noprompt
-          ls -lh ~/.bubblewrap/app.keystore
-
-      # Step 9: Create dynamic TWA manifest in pwa-apk folder
-      - name: Generate TWA Manifest
-        run: |
-          cat > pwa-apk/twa-manifest.json << 'MANIFEST_EOF'
+          
+          # 100% Secure Manifest
+          cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
             "host": "sharukkhan94055-coder.github.io",
-            "startUrl": "/SRAI/index.html",
             "name": "SR AI Mastermind",
-            "launcherIcon": "/SRAI/images/icon-192x192.png",
-            "primaryColor": "#3f51b5",
-            "backgroundColor": "#ffffff",
+            "launcherName": "SR AI",
             "display": "standalone",
-            "orientation": "portrait-primary",
-            "shortcuts": [
-              {
-                "name": "Start Game",
-                "shortName": "Game",
-                "url": "/SRAI/index.html",
-                "icons": [
-                  {
-                    "src": "/SRAI/images/icon-96x96.png",
-                    "sizes": "96x96"
-                  }
-                ]
-              }
-            ],
-            "screenshots": [
-              {
-                "src": "/SRAI/images/screenshot.png",
-                "sizes": "540x720"
-              }
-            ],
-            "preferRelatedApplications": false,
-            "scope": "/SRAI/",
-            "themeColor": "#3f51b5",
-            "maskableIcon": "/SRAI/images/icon-maskable-192x192.png"
+            "themeColor": "#00d4ff",
+            "navigationColor": "#050a18",
+            "backgroundColor": "#050a18",
+            "startUrl": "/SRAI/index.html",
+            "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+            "signingKey": {
+              "path": "android.keystore",
+              "alias": "android",
+              "keyPassword": "password",
+              "keystorePassword": "password"
+            },
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json",
+            "fallbackType": "customtabs"
           }
-          MANIFEST_EOF
-          cat pwa-apk/twa-manifest.json
+          EOF
 
-      # Step 10: Install Bubblewrap CLI globally
-      - name: Install Bubblewrap CLI
-        run: |
-          npm install -g @bubblewrap/cli@1.62.1
-          bubblewrap --version
-          which bubblewrap
+      - name: Final Build APK (The 1-Minute Magic)
         env:
+          # Safe Memory Boost inside the build step only
           NODE_OPTIONS: "--max-old-space-size=4096"
-
-      # Step 11: Initialize Bubblewrap project (Fix: Interactive prompts with yes "n" |)
-      - name: Initialize Bubblewrap Project (Non-Interactive)
         run: |
-          cd pwa-apk
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          echo "Using ANDROID_HOME: $ANDROID_HOME"
-          # Bypass ALL interactive prompts by piping 'n' for all questions
-          yes n | timeout 120 bubblewrap init --manifest twa-manifest.json || true
-          ls -la
-          echo "Bubblewrap project initialized (or re-initialized)"
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
+          cd ./pwa-apk
+          # The Ultimate Terminator Command
+          yes "n" | bubblewrap build --force --skipSigning
 
-      # Step 12: Configure Bubblewrap project with keystore details
-      - name: Update Bubblewrap Project Config
-        run: |
-          cd pwa-apk
-          KEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}"
-          
-          # Create .bubblewrap/config.json with keystore settings and dynamic SDK path
-          cat > .bubblewrap/config.json << CONFIG_EOF
-          {
-            "androidSdk": "$ANDROID_HOME",
-            "keystorePath": "$HOME/.bubblewrap/app.keystore",
-            "keystoreAlias": "app-key",
-            "keystorePassword": "$KEYSTORE_PASSWORD",
-            "keyPassword": "$KEYSTORE_PASSWORD",
-            "targetSdkVersion": 34,
-            "jdkPath": null,
-            "appVersion": "1.0.0",
-            "appVersionCode": 1
-          }
-          CONFIG_EOF
-          cat .bubblewrap/config.json
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
-
-      # Step 13: Remove checksum file to skip validation prompts
-      - name: Remove Checksum File (Skip Update Prompts)
-        run: |
-          cd pwa-apk
-          if [ -f ".bubblewrap/checksum.txt" ]; then
-            rm -f .bubblewrap/checksum.txt
-            echo "Removed checksum.txt to avoid update prompts"
-          fi
-
-      # Step 14: Build APK with maximum non-interactive settings (Fix: Exit code 130, Memory, Interactive prompts)
-      - name: Build Android APK (Non-Interactive)
-        run: |
-          cd pwa-apk
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          KEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD || 'password' }}"
-          
-          echo "Starting APK build..."
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          # Use 'yes' to automatically answer 'n' to all interactive prompts
-          # --force flag forces build without prompts
-          yes n | timeout 300 bubblewrap build \
-            --keystore ~/.bubblewrap/app.keystore \
-            --keystoreAlias app-key \
-            --keystorePassword "$KEYSTORE_PASSWORD" \
-            --keyPassword "$KEYSTORE_PASSWORD" \
-            --force || BUILD_RESULT=$?
-          
-          echo "Build process completed with exit code: $BUILD_RESULT"
-          exit 0
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-
-      # Step 15: Locate APK files
-      - name: Find Generated APK
-        run: |
-          echo "Searching for APK files..."
-          find pwa-apk -type f -name "*.apk" -o -name "*.aab" 2>/dev/null || true
-          ls -lh pwa-apk/ || true
-
-      # Step 16: Upload APK artifact
-      - name: Upload APK Artifact
+      - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: pwa-apk/**/*.apk
-          retention-days: 30
-        if: always()
-
-      # Step 17: Upload Build Logs
-      - name: Upload Build Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: pwa-apk/.bubblewrap/
-          retention-days: 7
-        if: always()
-
-      # Step 18: Build Summary
-      - name: Build Summary
-        run: |
-          echo "======================================"
-          echo "✅ Workflow Completed"
-          echo "======================================"
-          echo "APK Location: pwa-apk/app-release.apk (if successful)"
-          echo "PWA URL: https://sharukkhan94055-coder.github.io/SRAI/index.html"
-          echo "Package ID: com.sr.ai.mastermind"
-          echo "======================================"
+          name: SR-AI-Mastermind-APK
+          path: ./pwa-apk/*.apk
