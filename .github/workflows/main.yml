@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Modern JDK (Java 21 - Smart Engine)
+      - name: Set up Modern JDK (Java 21)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -29,8 +29,8 @@ jobs:
       - name: Generate Android APK
         run: |
           mkdir -p ./pwa-apk
-          # Full URL + Smart Bypass
-          yes | bubblewrap init --manifest=https://sharukkhan94055-coder.github.io/SR_AI/manifest.json --directory=./pwa-apk
+          # Lo Babu, hata diya underscore! Ab robot ko makkhan dikhega.
+          yes | bubblewrap init --manifest="https://sharukkhan94055-coder.github.io/SRAI/manifest.json" --directory=./pwa-apk
           cd ./pwa-apk
           yes | bubblewrap build
 
