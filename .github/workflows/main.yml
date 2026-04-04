@@ -1,4 +1,4 @@
-name: Build Android APK (100% Guaranteed Build)
+name: Build Android APK (Final Mastermind Fix)
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Modern JDK (Java 21)
+      - name: Set up Smart Engine (Java 21)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -26,22 +26,50 @@ jobs:
       - name: Install Bubblewrap
         run: npm install --global @bubblewrap/cli
 
-      - name: Bypass Internet (Start Local Server)
+      - name: Create Dummy Keystore (Important Step!)
         run: |
-          # Isse robot ko internet par nahi jana padega!
-          python3 -m http.server 8000 & 
-          sleep 5 # Server shuru hone ka intezaar
+          # Isse robot password nahi puchega, hum pehle hi key bana rahe hain
+          keytool -genkey -v -keystore ./android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=SR, OU=Comedy, O=Gang, L=Basti, S=UP, C=IN"
 
-      - name: Generate Android APK
+      - name: Force Create Valid Manifest
         run: |
           mkdir -p ./pwa-apk
-          # Robot ko ab local server se file milegi, koi 404 error nahi!
-          yes | bubblewrap init --manifest=http://localhost:8000/manifest.json --directory=./pwa-apk
-          cd ./pwa-apk
-          yes | bubblewrap build
+          cat <<EOF > ./pwa-apk/twa-manifest.json
+          {
+            "packageId": "com.srai.app",
+            "host": "sharukkhan94055-coder.github.io",
+            "name": "SR AI Mastermind",
+            "launcherName": "SR AI",
+            "display": "standalone",
+            "themeColor": "#00d4ff",
+            "navigationColor": "#050a18",
+            "backgroundColor": "#050a18",
+            "enableNotifications": false,
+            "startUrl": "/SRAI/index.html",
+            "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+            "maskableIconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": {
+              "path": "../android.keystore",
+              "alias": "android"
+            },
+            "appVersionName": "1.0.0",
+            "appVersionCode": 1,
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json",
+            "fallbackType": "customtabs",
+            "isHarman": false
+          }
+          EOF
 
-      - name: Upload APK Artifact
+      - name: Build APK (Automatic Response)
+        run: |
+          cd ./pwa-apk
+          # Is baar hum password bhi saath bhej rahe hain taaki hang na ho
+          printf 'password\npassword\n' | bubblewrap build
+
+      - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
           name: SR-AI-Mastermind-APK
-          path: ./pwa-apk/app-release-unsigned.apk
+          path: ./pwa-apk/*.apk
