@@ -1,4 +1,4 @@
-name: Build SR Comedy Gang APK (Java 11 Stable)
+name: Build SR AI Mastermind APK (Java 21 High-Speed)
 
 on:
   push:
@@ -12,10 +12,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Rock-Solid Engine (Java 11)
+      - name: Set up High-Performance Engine (Java 21)
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Node.js 20
@@ -26,24 +26,30 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Bubblewrap
+      - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Lock Robot Configuration
+      - name: Silent Robot Configuration (No Prompts)
         run: |
           mkdir -p ~/.bubblewrap
+          # Direct config injection to bypass initialization questions
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
 
-      - name: Create Keystore & Manifest
+      - name: Generate Silent Keystore & TWA Manifest
         run: |
           mkdir -p ./pwa-apk
           
-          keytool -genkeypair -v -keystore ./pwa-apk/android.keystore \
+          # Generating keystore without asking for password twice
+          keytool -genkeypair -v \
+            -keystore ./pwa-apk/android.keystore \
             -keyalg RSA -keysize 2048 -validity 10000 \
-            -alias android -storepass password -keypass password \
-            -dname 'CN=SR, OU=Comedy, O=Gang, L=Basti, ST=UP, C=IN' \
+            -alias android \
+            -storepass "password123" \
+            -keypass "password123" \
+            -dname "CN=SR, OU=Mastermind, O=Global, L=Basti, ST=UP, C=IN" \
             -noprompt
           
+          # Creating the TWA Manifest (Directly Linked to your GitHub Pages)
           cat <<EOF > ./pwa-apk/twa-manifest.json
           {
             "packageId": "com.sr.ai.mastermind",
@@ -51,33 +57,37 @@ jobs:
             "name": "SR AI Mastermind",
             "launcherName": "SR AI",
             "display": "standalone",
-            "themeColor": "#00d4ff",
-            "navigationColor": "#050a18",
-            "backgroundColor": "#050a18",
-            "startUrl": "/SRAI/index.html",
+            "themeColor": "#080808",
+            "navigationColor": "#00d4ff",
+            "backgroundColor": "#080808",
+            "startUrl": "/index.html",
             "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+            "maskableIconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
             "signingKey": {
               "path": "android.keystore",
               "alias": "android",
-              "keyPassword": "password",
-              "keystorePassword": "password"
+              "keyPassword": "password123",
+              "keystorePassword": "password123"
             },
             "generatorApp": "bubblewrap-cli",
-            "webManifestUrl": "https://sharukkhan94055-coder.github.io/SRAI/manifest.json",
-            "fallbackType": "customtabs"
+            "webManifestUrl": "https://sharukkhan94055-coder.github.io/manifest.json",
+            "fallbackType": "customtabs",
+            "enableNotifications": true,
+            "orientation": "portrait",
+            "shortcuts": []
           }
           EOF
 
-      - name: Final Build APK (Zero Prompt)
+      - name: Turbo Build APK (Full Bypass & Zero Interaction)
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd ./pwa-apk
-          # 'y' aur skipSigning mila kar poora bypass
-          yes "y" | bubblewrap build --skipSigning
+          # Using --yes and --accept_tos to kill all prompts
+          bubblewrap build --yes --accept_tos
 
-      - name: Upload Final APK
+      - name: Upload Mastermind APK
         uses: actions/upload-artifact@v4
         with:
-          name: SR-AI-Mastermind-APK
+          name: SR-AI-Mastermind-Final-APK
           path: ./pwa-apk/*.apk
