@@ -1,9 +1,91 @@
-- name: Turbo Build APK (The Ultimate Force Fix)
+name: Build SR AI Mastermind APK (The Final Fix)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up High-Performance Engine (Java 21)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Silent Robot Configuration
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+
+      - name: Generate Keystore & TWA Manifest (Everything Stays Here)
+        run: |
+          mkdir -p ./pwa-apk
+          
+          # Keystore generation (Silent)
+          keytool -genkeypair -v \
+            -keystore ./pwa-apk/android.keystore \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias android \
+            -storepass "password123" \
+            -keypass "password123" \
+            -dname "CN=SR, OU=Mastermind, O=Global, L=Basti, ST=UP, C=IN" \
+            -noprompt
+          
+          # Manifest creation (Path checked: Root index.html)
+          cat <<EOF > ./pwa-apk/twa-manifest.json
+          {
+            "packageId": "com.sr.ai.mastermind",
+            "host": "sharukkhan94055-coder.github.io",
+            "name": "SR AI Mastermind",
+            "launcherName": "SR AI",
+            "display": "standalone",
+            "themeColor": "#080808",
+            "navigationColor": "#00d4ff",
+            "backgroundColor": "#080808",
+            "startUrl": "/index.html",
+            "iconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+            "maskableIconUrl": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+            "signingKey": {
+              "path": "android.keystore",
+              "alias": "android",
+              "keyPassword": "password123",
+              "keystorePassword": "password123"
+            },
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://sharukkhan94055-coder.github.io/manifest.json",
+            "fallbackType": "customtabs"
+          }
+          EOF
+
+      - name: Turbo Build APK (Checksum & Prompt Bypass)
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd ./pwa-apk
-          # 1. Pehle project update karo taaki checksum error na aaye
+          # Ye line checksum error ko khatam karegi (YES pipe ke saath)
           yes | bubblewrap update --yes
-          # 2. Phir build karo, saare prompts ko 'yes' bolte hue
+          # Ye final build karega bina kisi sawal ke
           bubblewrap build --yes --accept_tos
+
+      - name: Upload Mastermind APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SR-AI-Mastermind-Final-APK
+          path: ./pwa-apk/*.apk
