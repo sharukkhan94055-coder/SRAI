@@ -1,16 +1,20 @@
-<link rel="manifest" href="manifest.json">
-<!-- GitHub Copilot Chat Assistant -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="description" content="SR-AI Mastermind dashboard with dark glassmorphism, controls, and live system logs." />
+  <meta name="theme-color" content="#00d4ff" />
+  <meta name="color-scheme" content="dark only" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>SR-AI MASTERMIND v1.0</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg" />
+  <link rel="apple-touch-icon" href="icons/icon-192.svg" />
 
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Tailwind custom theme extension for neon/glass accents (via CDN config)
     tailwind.config = {
       theme: {
         extend: {
@@ -28,52 +32,55 @@
           }
         }
       }
-    }
+    };
   </script>
 
-  <!-- Lucide icons -->
   <script src="https://cdn.jsdelivr.net/npm/lucide/dist/lucide.min.js"></script>
 
   <style>
-    /* Global dark glassmorphism + font setup */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
-    :root{
-      --bg:#0b1020;
+    :root {
+      --bg: #0b1020;
       --glass: rgba(255,255,255,0.04);
       --card: rgba(255,255,255,0.03);
       --neon-blue: #4ee1ff;
       --neon-purple: #b084ff;
-      --accent: linear-gradient(135deg,var(--neon-blue),var(--neon-purple));
+      --accent: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
       --glass-border: rgba(255,255,255,0.06);
       --danger: #ff5c7c;
       --success: #4ade80;
     }
 
-    html,body{
-      height:100%;
-      background: radial-gradient(800px 400px at 10% 10%, rgba(72,61,255,0.06), transparent),
-                  radial-gradient(600px 300px at 90% 90%, rgba(3,218,197,0.03), transparent),
-                  var(--bg);
-      color:#cfe9ff;
-      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(800px 400px at 10% 10%, rgba(72,61,255,0.06), transparent),
+        radial-gradient(600px 300px at 90% 90%, rgba(3,218,197,0.03), transparent),
+        var(--bg);
+      color: #cfe9ff;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
     }
 
-    /* Center container */
+    body {
+      min-height: 100vh;
+    }
+
     .app {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 28px;
-      box-sizing: border-box;
     }
 
-    /* Main card */
     .card {
       width: 100%;
       max-width: 1100px;
@@ -88,282 +95,364 @@
       grid-template-columns: 1fr;
     }
 
-    /* Header */
     .header {
-      display:flex;
-      align-items:center;
-      gap:14px;
-      justify-content:space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
     }
+
     .brand {
-      display:flex;
-      gap:12px;
-      align-items:center;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+
     .logo {
-      width:56px;
-      height:56px;
-      border-radius:14px;
-      padding:8px;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      padding: 8px;
       background: linear-gradient(135deg, rgba(78,225,255,0.08), rgba(176,133,255,0.06));
-      border:1px solid rgba(255,255,255,0.04);
-      display:grid;
-      place-items:center;
+      border: 1px solid rgba(255,255,255,0.04);
+      display: grid;
+      place-items: center;
       box-shadow: 0 6px 20px rgba(108,99,255,0.06), inset 0 0 18px rgba(78,225,255,0.02);
     }
+
     .title {
-      font-weight:800;
-      font-size:18px;
-      letter-spacing:0.6px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.6px;
       color: #eaf6ff;
     }
-    .subtitle { font-size:12px; color: #9fc6ff; opacity:0.85; }
 
-    /* Layout split for mobile-first: stacked, on md: grid two columns */
+    .subtitle {
+      font-size: 12px;
+      color: #9fc6ff;
+      opacity: 0.85;
+    }
+
     .grid {
-      display:grid;
+      display: grid;
       grid-template-columns: 1fr;
-      gap:16px;
-    }
-    @media (min-width:900px){
-      .card { padding:28px; grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 420px 1fr; align-items:start; }
+      gap: 16px;
     }
 
-    /* Left panel */
+    @media (min-width: 900px) {
+      .card {
+        padding: 28px;
+      }
+      .grid {
+        grid-template-columns: 420px 1fr;
+        align-items: start;
+      }
+    }
+
     .panel {
-      border-radius:14px;
-      padding:16px;
+      border-radius: 14px;
+      padding: 16px;
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.03);
-      box-shadow: var(--tw-shadow, 0 6px 20px rgba(6,8,20,0.5));
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 6px 20px rgba(6,8,20,0.5);
     }
 
-    /* Avatar */
     .avatar-wrap {
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      align-items:center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
+
     .avatar-frame {
-      width:180px;
-      height:180px;
-      border-radius:999px;
-      padding:8px;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      padding: 8px;
       background: linear-gradient(135deg, rgba(78,225,255,0.06), rgba(176,133,255,0.06));
       box-shadow: 0 8px 40px rgba(130,94,255,0.06), inset 0 0 36px rgba(78,225,255,0.04);
-      position:relative;
-      display:grid;
-      place-items:center;
-      overflow:hidden;
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
     }
+
     .avatar-inner {
-      width:100%;
-      height:100%;
-      border-radius:999px;
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
       background: radial-gradient(circle at 30% 30%, rgba(78,225,255,0.26), transparent 15%),
                   radial-gradient(circle at 70% 70%, rgba(176,133,255,0.22), transparent 20%),
                   linear-gradient(180deg, rgba(6,8,20,0.6), rgba(6,8,20,0.85));
-      display:grid;
-      place-items:center;
-      position:relative;
-      overflow:hidden;
-      transform-style:preserve-3d;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
     }
-    /* rotating pseudo-3D orb canvas */
+
     canvas#avatarCanvas {
       width: 100%;
       height: 100%;
-      display:block;
-      border-radius:999px;
+      display: block;
+      border-radius: 999px;
     }
-    .avatar-label { font-weight:700; font-size:13px; color:#d8eeff; text-align:center; }
 
-    /* toggles list */
-    .toggles { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+    .avatar-label {
+      font-weight: 700;
+      font-size: 13px;
+      color: #d8eeff;
+      text-align: center;
+    }
+
+    .toggles {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+      width: 100%;
+    }
+
     .toggle {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px;
-      border-radius:12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 12px;
       background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
-      border:1px solid rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.02);
     }
-    .toggle .name { font-weight:600; color:#d8eeff; }
+
+    .toggle .name {
+      font-weight: 600;
+      color: #d8eeff;
+    }
+
     .switch {
-      --w:56px;
-      --h:30px;
-      width:var(--w);
-      height:var(--h);
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:999px;
-      padding:4px;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      border:1px solid rgba(255,255,255,0.04);
-      position:relative;
-      cursor:pointer;
+      --w: 56px;
+      --h: 30px;
+      width: var(--w);
+      height: var(--h);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: 999px;
+      padding: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.04);
+      position: relative;
+      cursor: pointer;
       transition: all 250ms cubic-bezier(.2,.9,.3,1);
+      outline: none;
     }
+
+    .switch:focus-visible {
+      box-shadow: 0 0 0 3px rgba(78, 225, 255, 0.3);
+    }
+
     .switch .knob {
-      width:22px;
-      height:22px;
-      border-radius:999px;
-      background:linear-gradient(180deg,#0b1222,#031022);
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #0b1222, #031022);
       box-shadow: 0 6px 16px rgba(2,6,23,0.7), 0 0 12px rgba(99,102,241,0.06);
       transform: translateX(0);
       transition: transform 260ms cubic-bezier(.2,.9,.3,1), background 260ms;
     }
+
     .switch.on {
       background: linear-gradient(90deg, rgba(78,225,255,0.14), rgba(176,133,255,0.12));
       border-color: rgba(120,89,255,0.35);
     }
-    .switch.on .knob { transform: translateX(26px); background: radial-gradient(circle at 30% 30%, #c5fbff, #b084ff); box-shadow: 0 6px 20px rgba(120,89,255,0.14), 0 0 18px rgba(78,225,255,0.12); }
 
-    /* Right panel: terminal + controls */
+    .switch.on .knob {
+      transform: translateX(26px);
+      background: radial-gradient(circle at 30% 30%, #c5fbff, #b084ff);
+      box-shadow: 0 6px 20px rgba(120,89,255,0.14), 0 0 18px rgba(78,225,255,0.12);
+    }
+
     .terminal {
-      border-radius:12px;
-      padding:12px;
+      border-radius: 12px;
+      padding: 12px;
       background: linear-gradient(180deg, rgba(0,0,0,0.42), rgba(4,6,12,0.45));
       border: 1px solid rgba(255,255,255,0.03);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
       color: #cbe8ff;
       height: 340px;
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
-    }
-    .term-header {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      margin-bottom:8px;
-    }
-    .chips { display:flex; gap:8px; align-items:center; }
-    .chip {
-      font-size:12px;
-      padding:6px 10px;
-      border-radius:999px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border: 1px solid rgba(255,255,255,0.03);
-      color:#aee6ff;
-    }
-    .term-body {
-      overflow:auto;
-      flex:1;
-      padding:8px;
-      border-radius:8px;
-      background: linear-gradient(180deg, rgba(2,6,23,0.25), rgba(2,6,23,0.12));
-      border:1px dashed rgba(255,255,255,0.02);
-      box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
-    }
-    .log-line {
-      font-size:13px;
-      line-height:1.5;
-      white-space:pre-wrap;
-      color:#bfe9ff;
-      opacity:0.95;
-    }
-    .log-meta { color:#7fd3ff; opacity:0.85; margin-right:8px; font-weight:600; }
-    .term-controls {
-      display:flex;
-      gap:10px;
-      align-items:center;
-      margin-top:10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    /* Buttons */
-    .btn {
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:12px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      color:#dff8ff;
-      font-weight:700;
-      border:1px solid rgba(255,255,255,0.03);
-      cursor:pointer;
-      transition: transform 160ms ease, box-shadow 160ms;
-      user-select:none;
+    .term-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
     }
-    .btn:active{ transform: translateY(1px) scale(0.997); }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.03);
+      color: #aee6ff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .term-body {
+      overflow: auto;
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(2,6,23,0.25), rgba(2,6,23,0.12));
+      border: 1px dashed rgba(255,255,255,0.02);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+    }
+
+    .log-line {
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      color: #bfe9ff;
+      opacity: 0.95;
+    }
+
+    .log-meta {
+      color: #7fd3ff;
+      opacity: 0.85;
+      margin-right: 8px;
+      font-weight: 600;
+    }
+
+    .term-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color: #dff8ff;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms;
+      user-select: none;
+    }
+
+    .btn:hover {
+      box-shadow: 0 6px 18px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.997);
+    }
+
     .btn-accent {
       background: var(--accent);
-      color:#031022;
+      color: #031022;
       box-shadow: 0 8px 36px rgba(88,94,255,0.18);
       border: none;
     }
+
     .btn-danger {
       background: linear-gradient(90deg, rgba(255,92,124,0.14), rgba(255,92,124,0.08));
       color: var(--danger);
-      border:1px solid rgba(255,92,124,0.06);
+      border: 1px solid rgba(255,92,124,0.06);
     }
+
     .btn-ghost {
       background: transparent;
-      border:1px solid rgba(255,255,255,0.04);
-      color:#bfe9ff;
-    }
-    .big {
-      padding:14px 18px;
-      font-size:15px;
-      border-radius:14px;
+      border: 1px solid rgba(255,255,255,0.04);
+      color: #bfe9ff;
     }
 
-    /* toasts */
-    #toastContainer { position: fixed; right: 18px; bottom: 18px; z-index:9999; display:flex; flex-direction:column; gap:10px; }
+    .big {
+      padding: 14px 18px;
+      font-size: 15px;
+      border-radius: 14px;
+    }
+
+    #toastContainer {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     .toast {
-      min-width:220px;
-      max-width:360px;
-      padding:12px 14px;
-      border-radius:12px;
+      min-width: 220px;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 12px;
       background: linear-gradient(180deg, rgba(15,23,42,0.88), rgba(8,12,20,0.88));
-      color:#e8f8ff;
-      border:1px solid rgba(255,255,255,0.03);
+      color: #e8f8ff;
+      border: 1px solid rgba(255,255,255,0.03);
       box-shadow: 0 10px 30px rgba(3,8,23,0.7), 0 0 8px rgba(78,225,255,0.04);
-      display:flex;
-      gap:10px;
-      align-items:center;
+      display: flex;
+      gap: 10px;
+      align-items: center;
       animation: slideUp 320ms cubic-bezier(.2,.9,.3,1);
     }
-    @keyframes slideUp { from { transform: translateY(8px); opacity:0 } to { transform: translateY(0); opacity:1 } }
 
-    /* modal */
-    .modal-backdrop {
-      position: fixed;
-      inset:0;
-      background: rgba(3,6,18,0.6);
-      display:grid;
-      place-items:center;
-      z-index:50;
-      backdrop-filter: blur(6px);
-    }
-    .modal {
-      width: 92%;
-      max-width:560px;
-      border-radius:14px;
-      padding:18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.03);
+    @keyframes slideUp {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
-    /* small helper */
-    .muted { color:#93c5ff; opacity:0.8; font-size:13px; }
-    .status-dot { width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:8px; box-shadow:0 6px 16px rgba(78,225,255,0.06); }
-    .status-online { background: linear-gradient(90deg,var(--neon-blue),var(--neon-purple)); }
+    .muted {
+      color: #93c5ff;
+      opacity: 0.8;
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 8px;
+      box-shadow: 0 6px 16px rgba(78,225,255,0.06);
+    }
+
+    .status-online {
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    }
+
     .kbd {
-      padding:6px 8px;
-      border-radius:8px;
+      padding: 6px 8px;
+      border-radius: 8px;
       background: rgba(255,255,255,0.02);
-      border:1px solid rgba(255,255,255,0.03);
-      font-weight:700;
-      color:#dff8ff;
-      font-size:12px;
+      border: 1px solid rgba(255,255,255,0.03);
+      font-weight: 700;
+      color: #dff8ff;
+      font-size: 12px;
     }
   </style>
 </head>
@@ -374,7 +463,6 @@
         <div class="brand">
           <div class="logo" aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 8px 30px rgba(99,102,241,0.06))">
-              <defs></defs>
               <rect x="3" y="3" width="18" height="18" rx="6" fill="url(#g)"></rect>
               <defs>
                 <linearGradient id="g" x1="0" x2="1">
@@ -390,14 +478,15 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:12px;align-items:center">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <div class="chip" id="statusChip"><span class="status-dot status-online" aria-hidden="true"></span><span id="sysStatusText">Idle</span></div>
-          <button class="btn btn-ghost" id="settingsBtn" title="Settings (no-op)"> <svg data-lucide="settings" width="16" height="16"></svg> Settings</button>
+          <button class="btn btn-ghost" id="settingsBtn" title="Settings (no-op)" aria-label="Settings">
+            <svg data-lucide="settings" width="16" height="16"></svg> Settings
+          </button>
         </div>
       </div>
 
       <section class="grid" aria-live="polite">
-        <!-- LEFT: Avatar + Toggles + Action Buttons -->
         <aside class="panel" aria-label="Controls Panel">
           <div class="avatar-wrap">
             <div class="avatar-frame" role="img" aria-label="SR-AI Avatar">
@@ -413,7 +502,7 @@
                   <div class="name">God Mode</div>
                   <div class="muted">Unlock full capabilities</div>
                 </div>
-                <div class="switch" tabindex="0" role="switch" aria-checked="false" data-state="off">
+                <div class="switch" tabindex="0" role="switch" aria-checked="false" data-state="off" aria-label="Toggle God Mode">
                   <div class="knob" aria-hidden="true"></div>
                 </div>
               </div>
@@ -423,7 +512,7 @@
                   <div class="name">Fast Inference</div>
                   <div class="muted">Accelerated model paths</div>
                 </div>
-                <div class="switch" tabindex="0" role="switch" aria-checked="false" data-state="off">
+                <div class="switch" tabindex="0" role="switch" aria-checked="false" data-state="off" aria-label="Toggle Fast Inference">
                   <div class="knob" aria-hidden="true"></div>
                 </div>
               </div>
@@ -431,32 +520,37 @@
               <div class="toggle" data-key="deepResearch">
                 <div>
                   <div class="name">Deep Research</div>
-                  <div class="muted">Extended context & retrieval</div>
+                  <div class="muted">Extended context &amp; retrieval</div>
                 </div>
-                <div class="switch" tabindex="0" role="switch" aria-checked="false" data-state="off">
+                <div class="switch" tabindex="0" role="switch" aria-checked="false" data-state="off" aria-label="Toggle Deep Research">
                   <div class="knob" aria-hidden="true"></div>
                 </div>
               </div>
             </div>
 
             <div style="width:100%;display:flex;flex-direction:row;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center">
-              <button id="deployBtn" class="btn btn-accent big" title="Deploy AI"><svg data-lucide="rocket" width="18" height="18"></svg> Deploy AI</button>
-              <button id="clearBtn" class="btn btn-danger big" title="Clear Memory"><svg data-lucide="trash" width="18" height="18"></svg> Clear Memory</button>
+              <button id="deployBtn" class="btn btn-accent big" title="Deploy AI" aria-label="Deploy AI">
+                <svg data-lucide="rocket" width="18" height="18"></svg> Deploy AI
+              </button>
+              <button id="clearBtn" class="btn btn-danger big" title="Clear Memory" aria-label="Clear Memory">
+                <svg data-lucide="trash" width="18" height="18"></svg> Clear Memory
+              </button>
             </div>
 
             <div style="width:100%;display:flex;gap:10px;margin-top:10px;justify-content:center">
-              <button id="overrideBtn" class="btn btn-ghost big" title="Override System"><svg data-lucide="zap" width="16" height="16"></svg> Override System</button>
+              <button id="overrideBtn" class="btn btn-ghost big" title="Override System" aria-label="Override System">
+                <svg data-lucide="zap" width="16" height="16"></svg> Override System
+              </button>
             </div>
 
             <div style="margin-top:12px;text-align:center" class="muted">Pro Tip: Toggle engines, then hit Deploy to see live logs and avatar feedback.</div>
           </div>
         </aside>
 
-        <!-- RIGHT: Terminal + Controls -->
         <section class="panel" aria-label="Terminal & Controls">
           <div class="term-header">
             <div style="display:flex;flex-direction:column">
-              <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <div class="chip"><svg data-lucide="cpu" width="14" height="14"></svg> Core</div>
                 <div class="chip"><svg data-lucide="wind" width="14" height="14"></svg> Engine</div>
                 <div class="chip"><svg data-lucide="shield" width="14" height="14"></svg> Sandbox</div>
@@ -464,24 +558,32 @@
               <div class="muted" style="margin-top:6px">Live Terminal · System Logs</div>
             </div>
 
-            <div style="display:flex;gap:8px;align-items:center">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <div class="muted">Speed</div>
-              <input id="speedRange" type="range" min="200" max="2000" step="50" value="900" aria-label="Log speed slider">
-              <button id="pauseBtn" class="btn btn-ghost" title="Pause/Resume Logs"><svg data-lucide="pause" width="16" height="16"></svg></button>
-              <button id="clearLogsBtn" class="btn btn-ghost" title="Clear Terminal"><svg data-lucide="trash-2" width="16" height="16"></svg></button>
+              <input id="speedRange" type="range" min="200" max="2000" step="50" value="900" aria-label="Log speed slider" />
+              <button id="pauseBtn" class="btn btn-ghost" title="Pause/Resume Logs" aria-label="Pause or resume logs">
+                <svg data-lucide="pause" width="16" height="16"></svg>
+              </button>
+              <button id="clearLogsBtn" class="btn btn-ghost" title="Clear Terminal" aria-label="Clear terminal">
+                <svg data-lucide="trash-2" width="16" height="16"></svg>
+              </button>
             </div>
           </div>
 
           <div class="terminal" id="terminal" role="log" aria-live="polite">
             <div class="term-body" id="termBody" tabindex="0" aria-label="System logs window"></div>
             <div class="term-controls">
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button id="copyLogsBtn" class="btn btn-ghost"><svg data-lucide="copy" width="14" height="14"></svg> Copy Logs</button>
-                <button id="downloadLogsBtn" class="btn btn-ghost"><svg data-lucide="download" width="14" height="14"></svg> Download</button>
-                <button id="injectBtn" class="btn btn-ghost" title="Inject custom log">Inject Log</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button id="copyLogsBtn" class="btn btn-ghost" aria-label="Copy logs">
+                  <svg data-lucide="copy" width="14" height="14"></svg> Copy Logs
+                </button>
+                <button id="downloadLogsBtn" class="btn btn-ghost" aria-label="Download logs">
+                  <svg data-lucide="download" width="14" height="14"></svg> Download
+                </button>
+                <button id="injectBtn" class="btn btn-ghost" title="Inject custom log" aria-label="Inject custom log">Inject Log</button>
               </div>
 
-              <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
                 <div class="muted">Memory</div>
                 <div class="kbd" id="memoryKb">--</div>
               </div>
@@ -489,55 +591,354 @@
           </div>
 
           <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
-            <button id="quickAction1" class="btn btn-ghost"><svg data-lucide="zap" width="14" height="14"></svg> Quick Boost</button>
-            <button id="quickAction2" class="btn btn-ghost"><svg data-lucide="eye" width="14" height="14"></svg> Introspect</button>
+            <button id="quickAction1" class="btn btn-ghost" aria-label="Quick boost">
+              <svg data-lucide="zap" width="14" height="14"></svg> Quick Boost
+            </button>
+            <button id="quickAction2" class="btn btn-ghost" aria-label="Introspect">
+              <svg data-lucide="eye" width="14" height="14"></svg> Introspect
+            </button>
           </div>
         </section>
       </section>
     </main>
   </div>
 
-  <!-- Toasts container -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Modal placeholder -->
-  <div id="modalRoot" aria-hidden="true"></div>
-
   <script>
-    // Initialize lucide icons
-    document.addEventListener('DOMContentLoaded', ()=>{ if(window.lucide) lucide.replace(); });
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        lucide.replace();
+      }
 
-    // Application state
-    const state = {
-      godMode: false,
-      fastInference: false,
-      deepResearch: false,
-      deployed: false,
-      paused: false,
-      logInterval: 900,
-      memoryKB: 0,
-      logs: [],
-      avatarSpeed: 0.6,
-    };
+      initializeApp();
+    });
 
-    // DOM refs
-    const switches = Array.from(document.querySelectorAll('.toggle'));
-    const deployBtn = document.getElementById('deployBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const overrideBtn = document.getElementById('overrideBtn');
-    const termBody = document.getElementById('termBody');
-    const speedRange = document.getElementById('speedRange');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const clearLogsBtn = document.getElementById('clearLogsBtn');
-    const copyLogsBtn = document.getElementById('copyLogsBtn');
-    const downloadLogsBtn = document.getElementById('downloadLogsBtn');
-    const injectBtn = document.getElementById('injectBtn');
-    const memoryKb = document.getElementById('memoryKb');
-    const statusChip = document.getElementById('statusChip');
-    const sysStatusText = document.getElementById('sysStatusText');
-    const toastContainer = document.getElementById('toastContainer');
-    const modalRoot = document.getElementById('modalRoot');
+    function initializeApp() {
+      const state = {
+        godMode: false,
+        fastInference: false,
+        deepResearch: false,
+        deployed: false,
+        paused: false,
+        logInterval: 900,
+        memoryKB: 0,
+        logs: [],
+        avatarSpeed: 0.6,
+        logTimer: null,
+        logIndex: 0
+      };
 
-    // Utility: toast
-    function toast(message, opts = {}) {
-      const {type='info
+      const switches = Array.from(document.querySelectorAll('.switch'));
+      const deployBtn = document.getElementById('deployBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const overrideBtn = document.getElementById('overrideBtn');
+      const termBody = document.getElementById('termBody');
+      const speedRange = document.getElementById('speedRange');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const clearLogsBtn = document.getElementById('clearLogsBtn');
+      const copyLogsBtn = document.getElementById('copyLogsBtn');
+      const downloadLogsBtn = document.getElementById('downloadLogsBtn');
+      const injectBtn = document.getElementById('injectBtn');
+      const memoryKb = document.getElementById('memoryKb');
+      const statusChip = document.getElementById('statusChip');
+      const sysStatusText = document.getElementById('sysStatusText');
+      const toastContainer = document.getElementById('toastContainer');
+      const quickAction1 = document.getElementById('quickAction1');
+      const quickAction2 = document.getElementById('quickAction2');
+      const settingsBtn = document.getElementById('settingsBtn');
+      const canvas = document.getElementById('avatarCanvas');
+      const ctx = canvas.getContext('2d');
+
+      function toast(message, opts = {}) {
+        const { type = 'info', duration = 2600 } = opts;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'toast';
+        wrapper.setAttribute('role', 'status');
+        wrapper.innerHTML = `<span class="status-dot ${(type === 'success' ? 'status-online' : type === 'error' ? 'style="background:#ff5c7c;"' : 'status-online')}" aria-hidden="true"></span><span>${message}</span>`;
+        toastContainer.appendChild(wrapper);
+        window.setTimeout(() => {
+          wrapper.remove();
+        }, duration);
+      }
+
+      function updateStatus(text, isOnline = true) {
+        sysStatusText.textContent = text;
+        const dot = statusChip.querySelector('.status-dot');
+        if (dot) {
+          dot.style.background = isOnline ? 'linear-gradient(90deg, var(--neon-blue), var(--neon-purple))' : 'linear-gradient(90deg, #ff5c7c, #f59e0b)';
+        }
+      }
+
+      function syncMemory() {
+        state.memoryKB = Math.max(0, state.memoryKB + (state.deployed ? 30 : 4));
+        const value = `${Math.min(state.memoryKB, 9999)} KB`;
+        memoryKb.textContent = value;
+        memoryKb.title = value;
+      }
+
+      function updateSwitchVisual(el, active) {
+        const switchEl = el.closest('.switch');
+        if (!switchEl) return;
+        if (active) {
+          switchEl.classList.add('on');
+          switchEl.setAttribute('aria-checked', 'true');
+          switchEl.dataset.state = 'on';
+        } else {
+          switchEl.classList.remove('on');
+          switchEl.setAttribute('aria-checked', 'false');
+          switchEl.dataset.state = 'off';
+        }
+      }
+
+      function toggleState(key) {
+        const value = !state[key];
+        state[key] = value;
+        const target = document.querySelector(`.toggle[data-key="${key}"] .switch`);
+        if (target) {
+          updateSwitchVisual(target, value);
+        }
+        const flags = [
+          ['godMode', 'God mode'],
+          ['fastInference', 'Fast inference'],
+          ['deepResearch', 'Deep research']
+        ];
+
+        const label = flags.find(([name]) => name === key)?.[1] || key;
+        updateStatus(value ? `${label} enabled` : `${label} disabled`);
+        toast(`${label} ${value ? 'enabled' : 'disabled'}`);
+      }
+
+      function appendLog(message, type = 'info') {
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        const stamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const color = type === 'error' ? '#ff9bb1' : type === 'success' ? '#8ef0b9' : '#bfe9ff';
+        line.innerHTML = `<span class="log-meta">[${stamp}]</span><span style="color:${color}">${message}</span>`;
+        termBody.appendChild(line);
+        termBody.scrollTop = termBody.scrollHeight;
+      }
+
+      function buildLogMessage() {
+        const events = [
+          'model sync complete',
+          'inference route optimized',
+          'memory channel stabilized',
+          'payload pipeline verified',
+          'research depth scan active',
+          'core node heartbeat normal',
+          'sandbox access validated',
+          'neural swarm synchronized',
+          'threading layer patched',
+          'signal drift corrected'
+        ];
+
+        const activeModes = [];
+        if (state.godMode) activeModes.push('god-mode');
+        if (state.fastInference) activeModes.push('fast-inference');
+        if (state.deepResearch) activeModes.push('deep-research');
+
+        const base = activeModes.length ? activeModes.join(' + ') : 'baseline';
+        return `[${base}] ${events[state.logIndex % events.length]}`;
+      }
+
+      function tickLog() {
+        if (state.paused || !state.deployed) return;
+        state.logIndex += 1;
+        const message = buildLogMessage();
+        appendLog(message, state.logIndex % 7 === 0 ? 'success' : 'info');
+        syncMemory();
+      }
+
+      function startLogLoop() {
+        clearInterval(state.logTimer);
+        state.logTimer = setInterval(tickLog, state.logInterval);
+      }
+
+      function resetLogLoop() {
+        if (state.logTimer) {
+          clearInterval(state.logTimer);
+        }
+        if (state.deployed) {
+          startLogLoop();
+        }
+      }
+
+      function seedConsole() {
+        termBody.innerHTML = '';
+        appendLog('SR-AI boot sequence initialized', 'success');
+        appendLog('thermal matrix stable', 'success');
+        appendLog('signal uplink connected', 'success');
+        appendLog('awaiting operator command', 'info');
+      }
+
+      function drawAvatar() {
+        const w = canvas.width;
+        const h = canvas.height;
+        const time = performance.now() * 0.001 * state.avatarSpeed;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const gradient = ctx.createRadialGradient(
+          w * 0.5 + Math.sin(time * 1.4) * 40,
+          h * 0.5 + Math.cos(time * 1.1) * 40,
+          10,
+          w * 0.5,
+          h * 0.5,
+          230
+        );
+
+        gradient.addColorStop(0, 'rgba(94,231,255,0.28)');
+        gradient.addColorStop(0.45, 'rgba(176,132,255,0.26)');
+        gradient.addColorStop(1, 'rgba(11,16,32,0.1)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, 150, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,255,255,0.04)';
+        ctx.fill();
+
+        for (let i = 0; i < 22; i++) {
+          const angle = (Math.PI * 2 * i) / 22 + time * 0.6;
+          const radius = 88 + Math.sin(time * 2 + i) * 14;
+          const x = w / 2 + Math.cos(angle) * radius;
+          const y = h / 2 + Math.sin(angle) * radius;
+          ctx.beginPath();
+          ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+          ctx.fillStyle = i % 2 === 0 ? 'rgba(94,231,255,0.7)' : 'rgba(176,132,255,0.85)';
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, 73, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(14,20,36,0.7)';
+        ctx.fill();
+
+        requestAnimationFrame(drawAvatar);
+      }
+
+      function copyLogs() {
+        const text = Array.from(termBody.querySelectorAll('.log-line')).map(line => line.textContent.trim()).join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+          toast('Logs copied to clipboard', { type: 'success' });
+        }).catch(() => {
+          toast('Clipboard access unavailable', { type: 'error' });
+        });
+      }
+
+      function downloadLogs() {
+        const blob = new Blob([
+          Array.from(termBody.querySelectorAll('.log-line')).map(line => line.textContent.trim()).join('\n')
+        ], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'srai-system-logs.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('Logs downloaded', { type: 'success' });
+      }
+
+      function handleDeploy() {
+        state.deployed = true;
+        state.memoryKB = 0;
+        updateStatus('Deploying');
+        appendLog('deploy command accepted', 'success');
+        appendLog('engine stack warming up', 'success');
+        appendLog('virtual core online', 'success');
+        startLogLoop();
+        toast('AI deployment complete', { type: 'success' });
+      }
+
+      function handleClear() {
+        state.deployed = false;
+        state.memoryKB = 0;
+        if (state.logTimer) clearInterval(state.logTimer);
+        termBody.innerHTML = '';
+        updateStatus('Idle');
+        memoryKb.textContent = '--';
+        toast('Memory cleared', { type: 'success' });
+      }
+
+      function handleOverride() {
+        const overrideMessage = state.godMode ? 'override executed: God Mode lock engaged' : 'override exercised: standard path preserved';
+        appendLog(overrideMessage, 'success');
+        updateStatus('Override active');
+        toast('System override applied', { type: 'success' });
+      }
+
+      function handleInject() {
+        appendLog(`custom event injected :: ${new Date().toLocaleTimeString()}`, 'info');
+        toast('Custom log injected', { type: 'success' });
+      }
+
+      function handleQuickAction(label, message) {
+        appendLog(message, 'success');
+        updateStatus(label);
+        toast(label, { type: 'success' });
+      }
+
+      switches.forEach((switchEl) => {
+        const key = switchEl.closest('.toggle')?.dataset.key;
+        if (!key) return;
+
+        switchEl.addEventListener('click', () => toggleState(key));
+        switchEl.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleState(key);
+          }
+        });
+      });
+
+      deployBtn.addEventListener('click', handleDeploy);
+      clearBtn.addEventListener('click', handleClear);
+      overrideBtn.addEventListener('click', handleOverride);
+      speedRange.addEventListener('input', (event) => {
+        state.logInterval = Number(event.target.value);
+        if (state.deployed) {
+          resetLogLoop();
+        }
+        toast(`Log speed set to ${state.logInterval}ms`, { type: 'info', duration: 1500 });
+      });
+
+      pauseBtn.addEventListener('click', () => {
+        state.paused = !state.paused;
+        updateStatus(state.paused ? 'Paused' : (state.deployed ? 'Running' : 'Idle'), !state.paused);
+        appendLog(state.paused ? 'log stream paused' : 'log stream resumed', 'info');
+        toast(state.paused ? 'Logs paused' : 'Logs resumed', { type: 'info' });
+      });
+
+      clearLogsBtn.addEventListener('click', () => {
+        termBody.innerHTML = '';
+        appendLog('terminal buffer cleared', 'info');
+        toast('Terminal cleared', { type: 'info' });
+      });
+
+      copyLogsBtn.addEventListener('click', copyLogs);
+      downloadLogsBtn.addEventListener('click', downloadLogs);
+      injectBtn.addEventListener('click', handleInject);
+      quickAction1.addEventListener('click', () => handleQuickAction('Quick Boost', 'quick boost executed :: throughput increased'));
+      quickAction2.addEventListener('click', () => handleQuickAction('Introspect', 'introspect scan complete :: system metrics reviewed'));
+      settingsBtn.addEventListener('click', () => toast('Settings panel is not yet wired', { type: 'info' }));
+
+      seedConsole();
+      drawAvatar();
+      updateStatus('Idle');
+      memoryKb.textContent = '--';
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./service-worker.js').catch(() => {
+            console.warn('Service worker registration failed.');
+          });
+        });
+      }
+    }
+  </script>
+</body>
+</html>
