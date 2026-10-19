@@ -1,15 +1,24 @@
 {
   "name": "SR AI Mastermind",
   "short_name": "SR AI",
-  "start_url": "index.html",
+  "description": "SR-AI Mastermind dashboard for monitoring AI core systems.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#050a18",
   "theme_color": "#00d4ff",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.svg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
